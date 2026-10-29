@@ -1,21 +1,24 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isSupabaseConfigured } from "./client";
+import { getSupabaseEnv, isSupabaseConfigured } from "./client";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  // Lewati pemeriksaan auth bila kredensial Supabase belum dikonfigurasi di .env.local
-  if (!isSupabaseConfigured()) {
-    return supabaseResponse;
-  }
+  try {
+    // Lewati pemeriksaan auth bila kredensial Supabase belum dikonfigurasi
+    if (!isSupabaseConfigured()) {
+      return supabaseResponse;
+    }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+    const { url, key } = getSupabaseEnv();
+    if (!url || !key) {
+      return supabaseResponse;
+    }
+
+    const supabase = createServerClient(url, key, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -32,35 +35,52 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
+    });
+
+    let user = null;
+    try {
+      const { data } = await supabase.auth.getUser();
+      user = data.user;
+    } catch (authError) {
+      console.warn("Middleware auth.getUser() error:", authError);
     }
-  );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const pathname = request.nextUrl.pathname;
+    const isAuthRoute =
+      pathname.startsWith("/login") ||
+      pathname.startsWith("/register") ||
+      pathname.startsWith("/forgot-password");
+    const isPublicRoute =
+      pathname === "/" || isAuthRoute || pathname.startsWith("/auth");
 
-  const pathname = request.nextUrl.pathname;
-  const isAuthRoute =
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/register") ||
-    pathname.startsWith("/forgot-password");
-  const isPublicRoute =
-    pathname === "/" || isAuthRoute || pathname.startsWith("/auth");
+    // Jika belum login dan mengakses halaman internal, redirect ke login
+    if (!user && !isPublicRoute) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/login";
+      redirectUrl.searchParams.set("next", pathname);
 
-  // Jika belum login dan mengakses halaman internal, redirect ke login
-  if (!user && !isPublicRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
+      const res = NextResponse.redirect(redirectUrl);
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        res.cookies.set(cookie.name, cookie.value, cookie);
+      });
+      return res;
+    }
+
+    // Jika sudah login dan membuka halaman login/register, redirect ke dashboard
+    if (user && isAuthRoute) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/dashboard";
+
+      const res = NextResponse.redirect(redirectUrl);
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        res.cookies.set(cookie.name, cookie.value, cookie);
+      });
+      return res;
+    }
+
+    return supabaseResponse;
+  } catch (error) {
+    console.error("Middleware invocation error caught:", error);
+    return NextResponse.next({ request });
   }
-
-  // Jika sudah login dan membuka halaman login/register, redirect ke dashboard
-  if (user && isAuthRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
-
-  return supabaseResponse;
 }
