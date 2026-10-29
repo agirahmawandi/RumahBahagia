@@ -1,91 +1,37 @@
-import { createServerClient } from "@supabase/ssr";
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+export function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
 
-  const url =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.SUPABASE_URL ||
-    "";
-  const key =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.SUPABASE_ANON_KEY ||
-    "";
+  // Cek apakah ada cookie autentikasi Supabase (format: sb-<ref>-auth-token)
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
 
-  // Jika kredensial belum ada atau dummy, izinkan akses tanpa crash
-  if (!url || !key || !url.startsWith("http") || url.includes("your-project-ref")) {
-    return supabaseResponse;
+  const isAuthRoute =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/forgot-password");
+
+  const isPublicRoute =
+    pathname === "/" || isAuthRoute || pathname.startsWith("/auth");
+
+  // Jika pengunjung belum login mencoba mengakses halaman internal, redirect ke login
+  if (!hasAuthCookie && !isPublicRoute) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/login";
+    redirectUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(redirectUrl);
   }
 
-  try {
-    const supabase = createServerClient(url, key, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    });
-
-    let user = null;
-    try {
-      const { data } = await supabase.auth.getUser();
-      user = data?.user ?? null;
-    } catch {
-      user = null;
-    }
-
-    const pathname = request.nextUrl.pathname;
-    const isAuthRoute =
-      pathname.startsWith("/login") ||
-      pathname.startsWith("/register") ||
-      pathname.startsWith("/forgot-password");
-    const isPublicRoute =
-      pathname === "/" || isAuthRoute || pathname.startsWith("/auth");
-
-    // Jika belum login dan mengakses halaman internal, redirect ke login
-    if (!user && !isPublicRoute) {
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/login";
-      redirectUrl.searchParams.set("next", pathname);
-
-      const res = NextResponse.redirect(redirectUrl);
-      supabaseResponse.cookies.getAll().forEach((cookie) => {
-        res.cookies.set(cookie.name, cookie.value, cookie);
-      });
-      return res;
-    }
-
-    // Jika sudah login dan membuka halaman login/register, redirect ke dashboard
-    if (user && isAuthRoute) {
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/dashboard";
-
-      const res = NextResponse.redirect(redirectUrl);
-      supabaseResponse.cookies.getAll().forEach((cookie) => {
-        res.cookies.set(cookie.name, cookie.value, cookie);
-      });
-      return res;
-    }
-
-    return supabaseResponse;
-  } catch (error) {
-    console.error("Middleware caught error:", error);
-    return NextResponse.next({ request });
+  // Jika pengguna sudah memiliki session auth dan membuka halaman login/register, arahkan ke dashboard
+  if (hasAuthCookie && isAuthRoute) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/dashboard";
+    return NextResponse.redirect(redirectUrl);
   }
+
+  return NextResponse.next();
 }
 
 export const config = {
