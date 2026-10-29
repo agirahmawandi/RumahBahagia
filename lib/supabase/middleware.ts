@@ -35,8 +35,32 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+  const isAuthRoute =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/forgot-password");
+  const isPublicRoute =
+    pathname === "/" || isAuthRoute || pathname.startsWith("/auth");
+
+  // Jika belum login dan mengakses halaman internal, redirect ke login
+  if (!user && !isPublicRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Jika sudah login dan membuka halaman login/register, redirect ke dashboard
+  if (user && isAuthRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
 
   return supabaseResponse;
 }
-

@@ -1,30 +1,25 @@
-import { Home, Plus } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { redirect } from "next/navigation";
+import { getCurrentHousehold } from "@/lib/data/household";
+import { getAccounts } from "@/lib/data/accounts";
+import { getAssets } from "@/lib/data/assets";
+import { AsetView } from "@/components/features/assets/aset-view";
 
-export default function AsetPage() {
+export default async function AsetPage() {
+  const household = await getCurrentHousehold();
+  if (!household) {
+    redirect("/onboarding");
+  }
+
+  const [assets, accounts] = await Promise.all([
+    getAssets(household.id),
+    getAccounts(household.id),
+  ]);
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        badge="Aset Tetap & Non-Kas"
-        title="Aset Keluarga"
-        subtitle="Catat properti/rumah, kendaraan, tanah, logam mulia, atau elektronik beserta nilai perolehan dan nilai pasar saat ini."
-        actions={
-          <Button variant="primary">
-            <Plus className="h-4 w-4" />
-            <span>Tambah Aset</span>
-          </Button>
-        }
-      />
-
-      <EmptyState
-        icon={Home}
-        title="Belum Ada Aset Terdaftar"
-        description="Masukkan aset tetap keluarga Anda agar laporan Neraca dan perhitungan Kekayaan Bersih (Net Worth) tercatat utuh."
-        actionLabel="+ Daftarkan Aset Pertama"
-      />
-    </div>
+    <AsetView
+      householdId={household.id}
+      assets={assets}
+      accounts={accounts}
+    />
   );
 }
-

@@ -1,30 +1,25 @@
-import { HandCoins, Plus } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { redirect } from "next/navigation";
+import { getCurrentHousehold } from "@/lib/data/household";
+import { getAccounts } from "@/lib/data/accounts";
+import { getLiabilities } from "@/lib/data/liabilities";
+import { UtangView } from "@/components/features/liabilities/utang-view";
 
-export default function UtangPage() {
+export default async function UtangPage() {
+  const household = await getCurrentHousehold();
+  if (!household) {
+    redirect("/onboarding");
+  }
+
+  const [liabilities, accounts] = await Promise.all([
+    getLiabilities(household.id),
+    getAccounts(household.id),
+  ]);
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        badge="Liabilitas & Cicilan"
-        title="Utang & Kewajiban"
-        subtitle="Pantau KPR, cicilan kendaraan, atau pinjaman lainnya beserta pemisahan pembayaran pokok dan beban bunga."
-        actions={
-          <Button variant="primary">
-            <Plus className="h-4 w-4" />
-            <span>Catat Utang / Cicilan</span>
-          </Button>
-        }
-      />
-
-      <EmptyState
-        icon={HandCoins}
-        title="Tidak Ada Catatan Utang Aktif"
-        description="Jika keluarga memiliki KPR atau cicilan, catat di sini untuk memantau sisa pokok pinjaman dan progres pelunasan."
-        actionLabel="+ Tambah Catatan Utang"
-      />
-    </div>
+    <UtangView
+      householdId={household.id}
+      liabilities={liabilities}
+      accounts={accounts}
+    />
   );
 }
-

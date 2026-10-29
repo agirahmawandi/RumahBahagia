@@ -1,30 +1,27 @@
-import { ArrowUpRight, Plus } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
+import { getCurrentHousehold } from "@/lib/data/household";
+import { getAccounts, getCategories } from "@/lib/data/accounts";
+import { getTransactions } from "@/lib/data/transactions";
+import { PengeluaranView } from "@/components/features/transactions/pengeluaran-view";
 
-export default function PengeluaranPage() {
+export default async function PengeluaranPage() {
+  const household = await getCurrentHousehold();
+  if (!household) {
+    redirect("/onboarding");
+  }
+
+  const [transactions, accounts, categories] = await Promise.all([
+    getTransactions(household.id, { type: "expense" }),
+    getAccounts(household.id),
+    getCategories(household.id, "expense"),
+  ]);
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        badge="Arus Kas Keluar"
-        title="Pengeluaran"
-        subtitle="Catat pengeluaran harian lengkap dengan kategori, rekening sumber, dan lampiran foto struk."
-        actions={
-          <Button variant="danger">
-            <Plus className="h-4 w-4" />
-            <span>Tambah Pengeluaran</span>
-          </Button>
-        }
-      />
-
-      <EmptyState
-        icon={ArrowUpRight}
-        title="Belum Ada Catatan Pengeluaran"
-        description="Pantau ke mana perginya uang keluarga Anda setiap bulan dan dapatkan peringatan saat anggaran kategori melampaui 80%."
-        actionLabel="+ Catat Pengeluaran Pertama"
-      />
-    </div>
+    <PengeluaranView
+      householdId={household.id}
+      transactions={transactions}
+      accounts={accounts}
+      categories={categories}
+    />
   );
 }
-

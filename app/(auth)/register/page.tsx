@@ -1,9 +1,31 @@
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { registerAction } from "@/app/(auth)/actions";
 
 export default function RegisterPage() {
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const result = await registerAction(formData);
+
+    if (result?.error) {
+      toast.error(result.error);
+      setLoading(false);
+    } else {
+      toast.success("Akun berhasil dibuat! Mengalihkan ke onboarding...");
+    }
+  }
+
   return (
     <div className="min-h-screen bg-cream-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-6 sm:p-8 space-y-6">
@@ -22,33 +44,51 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="font-ui text-xs font-bold text-ink">
               Nama Lengkap
             </label>
-            <Input type="text" placeholder="Budi Santoso" />
+            <Input
+              name="fullName"
+              type="text"
+              placeholder="Budi Santoso"
+              required
+            />
           </div>
 
           <div className="space-y-1.5">
             <label className="font-ui text-xs font-bold text-ink">
               Alamat Email
             </label>
-            <Input type="email" placeholder="nama@email.com" />
+            <Input
+              name="email"
+              type="email"
+              placeholder="nama@email.com"
+              required
+            />
           </div>
 
           <div className="space-y-1.5">
             <label className="font-ui text-xs font-bold text-ink">
               Kata Sandi
             </label>
-            <Input type="password" placeholder="Minimal 8 karakter" />
+            <Input
+              name="password"
+              type="password"
+              placeholder="Minimal 6 karakter"
+              required
+            />
           </div>
 
-          <Link href="/dashboard" className="block pt-1">
-            <Button type="button" variant="primary" className="w-full">
-              Daftar &amp; Buat Buku Keuangan
-            </Button>
-          </Link>
+          <Button
+            type="submit"
+            variant="primary"
+            className="w-full mt-2"
+            disabled={loading}
+          >
+            {loading ? "Membuat Akun..." : "Daftar & Buat Buku Keuangan"}
+          </Button>
         </form>
 
         <p className="text-center font-body text-sm text-ink-muted">
@@ -64,4 +104,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-

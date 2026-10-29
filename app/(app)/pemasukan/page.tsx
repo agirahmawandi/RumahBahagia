@@ -1,30 +1,27 @@
-import { ArrowDownLeft, Plus } from "lucide-react";
-import { PageHeader } from "@/components/layout/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
+import { getCurrentHousehold } from "@/lib/data/household";
+import { getAccounts, getCategories } from "@/lib/data/accounts";
+import { getTransactions } from "@/lib/data/transactions";
+import { PemasukanView } from "@/components/features/transactions/pemasukan-view";
 
-export default function PemasukanPage() {
+export default async function PemasukanPage() {
+  const household = await getCurrentHousehold();
+  if (!household) {
+    redirect("/onboarding");
+  }
+
+  const [transactions, accounts, categories] = await Promise.all([
+    getTransactions(household.id, { type: "income" }),
+    getAccounts(household.id),
+    getCategories(household.id, "income"),
+  ]);
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        badge="Arus Kas Masuk"
-        title="Pemasukan"
-        subtitle="Catat semua sumber pemasukan keluarga (Gaji, Bonus, Hasil Usaha, Hadiah, dan lainnya)."
-        actions={
-          <Button variant="primary">
-            <Plus className="h-4 w-4" />
-            <span>Tambah Pemasukan</span>
-          </Button>
-        }
-      />
-
-      <EmptyState
-        icon={ArrowDownLeft}
-        title="Belum Ada Catatan Pemasukan"
-        description="Setiap pemasukan yang Anda catat akan otomatis menambah saldo rekening tujuan dan tercatat pada laporan Surplus/Defisit."
-        actionLabel="+ Catat Pemasukan Pertama"
-      />
-    </div>
+    <PemasukanView
+      householdId={household.id}
+      transactions={transactions}
+      accounts={accounts}
+      categories={categories}
+    />
   );
 }
-
