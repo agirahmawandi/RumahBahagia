@@ -13,6 +13,14 @@ export async function createHouseholdAction(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Sesi Anda telah kedaluwarsa atau belum masuk. Silakan login terlebih dahulu." };
+  }
+
   const { error } = await supabase.rpc("create_household", {
     p_name: name.trim(),
     p_type: type,

@@ -3,10 +3,16 @@ import { NextResponse, type NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Cek apakah ada cookie autentikasi Supabase
+  // Cek apakah ada cookie autentikasi Supabase (abaikan code-verifier temporer)
   const hasAuthCookie = request.cookies
     .getAll()
-    .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
+    .some(
+      (c) =>
+        c.name.startsWith("sb-") &&
+        c.name.includes("-auth-token") &&
+        !c.name.includes("code-verifier") &&
+        Boolean(c.value)
+    );
 
   const isAuthRoute =
     pathname.startsWith("/login") ||

@@ -40,7 +40,7 @@ export async function registerAction(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -52,6 +52,18 @@ export async function registerAction(formData: FormData) {
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Jika session belum tercipta langsung (misal default setting GoTrue),
+  // lakukan sign in otomatis karena user telah auto-dikonfirmasi di database.
+  if (!data?.session) {
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInError) {
+      return { error: signInError.message };
+    }
   }
 
   revalidatePath("/", "layout");
