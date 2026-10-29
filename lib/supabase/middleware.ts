@@ -1,23 +1,25 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabaseEnv, isSupabaseConfigured } from "./client";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    "";
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    "";
+
+  if (!url || !key || !url.startsWith("http") || url.includes("your-project-ref")) {
+    return supabaseResponse;
+  }
+
   try {
-    // Lewati pemeriksaan auth bila kredensial Supabase belum dikonfigurasi
-    if (!isSupabaseConfigured()) {
-      return supabaseResponse;
-    }
-
-    const { url, key } = getSupabaseEnv();
-    if (!url || !key) {
-      return supabaseResponse;
-    }
-
     const supabase = createServerClient(url, key, {
       cookies: {
         getAll() {
@@ -40,9 +42,9 @@ export async function updateSession(request: NextRequest) {
     let user = null;
     try {
       const { data } = await supabase.auth.getUser();
-      user = data.user;
-    } catch (authError) {
-      console.warn("Middleware auth.getUser() error:", authError);
+      user = data?.user ?? null;
+    } catch {
+      user = null;
     }
 
     const pathname = request.nextUrl.pathname;
@@ -53,7 +55,6 @@ export async function updateSession(request: NextRequest) {
     const isPublicRoute =
       pathname === "/" || isAuthRoute || pathname.startsWith("/auth");
 
-    // Jika belum login dan mengakses halaman internal, redirect ke login
     if (!user && !isPublicRoute) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/login";
@@ -66,7 +67,6 @@ export async function updateSession(request: NextRequest) {
       return res;
     }
 
-    // Jika sudah login dan membuka halaman login/register, redirect ke dashboard
     if (user && isAuthRoute) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/dashboard";
@@ -80,7 +80,7 @@ export async function updateSession(request: NextRequest) {
 
     return supabaseResponse;
   } catch (error) {
-    console.error("Middleware invocation error caught:", error);
+    console.error("Middleware updateSession caught error:", error);
     return NextResponse.next({ request });
   }
 }

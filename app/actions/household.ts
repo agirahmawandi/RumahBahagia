@@ -13,7 +13,7 @@ export async function createHouseholdAction(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_household", {
+  const { error } = await supabase.rpc("create_household", {
     p_name: name.trim(),
     p_type: type,
   });
@@ -84,7 +84,7 @@ export async function inviteMemberAction(
 
 export async function acceptInvitationAction(token: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("accept_invitation", {
+  const { error } = await supabase.rpc("accept_invitation", {
     p_token: token,
   });
 
