@@ -23,22 +23,24 @@ export const getLiabilities = cache(
   async (householdId: string): Promise<LiabilityItem[]> => {
     const supabase = await createClient();
 
-    const { data: liabilities, error } = await supabase
-      .from("liabilities")
-      .select("*")
-      .eq("household_id", householdId)
-      .is("closed_at", null)
-      .order("created_at", { ascending: true });
+    const [liabilitiesRes, balancesRes] = await Promise.all([
+      supabase
+        .from("liabilities")
+        .select("*")
+        .eq("household_id", householdId)
+        .is("closed_at", null)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("v_account_balances")
+        .select("account_id, balance")
+        .eq("household_id", householdId),
+    ]);
 
-    if (error || !liabilities) return [];
-
-    const { data: balances } = await supabase
-      .from("v_account_balances")
-      .select("account_id, balance")
-      .eq("household_id", householdId);
+    const liabilities = liabilitiesRes.data;
+    if (liabilitiesRes.error || !liabilities) return [];
 
     const balanceMap = new Map<string, number>();
-    balances?.forEach((b) => {
+    balancesRes.data?.forEach((b) => {
       balanceMap.set(b.account_id, Number(b.balance) || 0);
     });
 

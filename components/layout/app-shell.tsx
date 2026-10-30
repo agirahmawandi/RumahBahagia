@@ -149,6 +149,7 @@ export function AppShell({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={true}
                 className={cn(
                   "flex items-center gap-3 rounded-[12px] px-3.5 py-2.5 font-ui text-sm font-bold transition-colors",
                   active
@@ -341,6 +342,7 @@ export function AppShell({
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 h-16 border-t border-line bg-white/95 backdrop-blur-md px-2 flex items-center justify-around">
         <Link
           href="/dashboard"
+          prefetch={true}
           className={cn(
             "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold",
             isActive("/dashboard") ? "text-teal-700" : "text-ink-muted"
@@ -352,6 +354,7 @@ export function AppShell({
 
         <Link
           href="/pengeluaran"
+          prefetch={true}
           className={cn(
             "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold",
             isActive("/pengeluaran") || isActive("/pemasukan")
@@ -377,6 +380,7 @@ export function AppShell({
 
         <Link
           href="/tabungan"
+          prefetch={true}
           className={cn(
             "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold",
             isActive("/tabungan") ? "text-teal-700" : "text-ink-muted"
@@ -480,6 +484,7 @@ export function AppShell({
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={true}
                     onClick={() => setMobileMoreOpen(false)}
                     className={cn(
                       "flex flex-col items-center justify-center gap-2 rounded-[14px] p-3 text-center border font-ui text-xs font-bold transition-colors",

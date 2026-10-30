@@ -19,14 +19,15 @@ export default async function AppGroupLayout({
     redirect("/login");
   }
 
-  const currentHousehold = await getCurrentHousehold();
+  const [currentHousehold, userHouseholds] = await Promise.all([
+    getCurrentHousehold(),
+    getUserHouseholds(),
+  ]);
 
   // Jika user belum punya buku keuangan apa pun, arahkan ke onboarding
   if (!currentHousehold) {
     redirect("/onboarding");
   }
-
-  const userHouseholds = await getUserHouseholds();
 
   return (
     <AppShell

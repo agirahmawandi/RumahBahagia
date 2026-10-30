@@ -39,81 +39,73 @@ export const getCurrentUser = cache(async () => {
   };
 });
 
-export const getCurrentHousehold = cache(async (): Promise<CurrentHousehold | null> => {
-  const supabase = await createClient();
-  const user = await getCurrentUser();
+interface MembershipRow {
+  role: string;
+  household_id: string;
+  households: {
+    id: string;
+    name: string;
+    type: "personal" | "family";
+    created_by: string;
+  } | null;
+}
 
+const getUserMemberships = cache(async (userId: string): Promise<MembershipRow[]> => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("household_members")
+    .select("role, household_id, households (id, name, type, created_by)")
+    .eq("user_id", userId)
+    .order("joined_at", { ascending: true });
+
+  return (data as unknown as MembershipRow[]) || [];
+});
+
+export const getCurrentHousehold = cache(async (): Promise<CurrentHousehold | null> => {
+  const user = await getCurrentUser();
   if (!user) return null;
 
-  // 1. Coba ambil berdasarkan default_household_id
-  if (user.defaultHouseholdId) {
-    const { data: member } = await supabase
-      .from("household_members")
-      .select("role, households (id, name, type, created_by)")
-      .eq("household_id", user.defaultHouseholdId)
-      .eq("user_id", user.id)
-      .single();
+  const memberships = await getUserMemberships(user.id);
+  if (!memberships || memberships.length === 0) return null;
 
-    if (member && member.households) {
-      const h = member.households as unknown as { id: string; name: string; type: "personal" | "family"; created_by: string };
-      return {
-        id: h.id,
-        name: h.name,
-        type: h.type,
-        role: member.role as "owner" | "editor" | "viewer",
-        created_by: h.created_by,
-      };
+  // 1. Coba ambil berdasarkan default_household_id
+  let match = user.defaultHouseholdId
+    ? memberships.find((m) => m.household_id === user.defaultHouseholdId)
+    : null;
+
+  // 2. Jika default belum terpasang atau tidak valid, ambil keanggotaan pertama
+  if (!match) {
+    match = memberships[0];
+    if (match.household_id) {
+      const supabase = await createClient();
+      await supabase
+        .from("profiles")
+        .update({ default_household_id: match.household_id })
+        .eq("id", user.id);
     }
   }
 
-  // 2. Jika default belum terpasang atau tidak valid, ambil household pertama di mana user terdaftar
-  const { data: firstMembership } = await supabase
-    .from("household_members")
-    .select("role, household_id, households (id, name, type, created_by)")
-    .eq("user_id", user.id)
-    .order("joined_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const h = match.households;
+  if (!h) return null;
 
-  if (firstMembership && firstMembership.households) {
-    const h = firstMembership.households as unknown as { id: string; name: string; type: "personal" | "family"; created_by: string };
-    
-    // Simpan ke profiles sebagai default
-    await supabase
-      .from("profiles")
-      .update({ default_household_id: h.id })
-      .eq("id", user.id);
-
-    return {
-      id: h.id,
-      name: h.name,
-      type: h.type,
-      role: firstMembership.role as "owner" | "editor" | "viewer",
-      created_by: h.created_by,
-    };
-  }
-
-  return null;
+  return {
+    id: h.id,
+    name: h.name,
+    type: h.type,
+    role: match.role as "owner" | "editor" | "viewer",
+    created_by: h.created_by,
+  };
 });
 
 export const getUserHouseholds = cache(async (): Promise<UserHouseholdSummary[]> => {
-  const supabase = await createClient();
   const user = await getCurrentUser();
-
   if (!user) return [];
 
-  const { data } = await supabase
-    .from("household_members")
-    .select("role, households (id, name, type)")
-    .eq("user_id", user.id)
-    .order("joined_at", { ascending: true });
-
-  if (!data) return [];
-
-  return data
+  const memberships = await getUserMemberships(user.id);
+  return memberships
     .filter((m) => m.households !== null)
     .map((m) => {
-      const h = m.households as unknown as { id: string; name: string; type: "personal" | "family" };
+      const h = m.households!;
       return {
         id: h.id,
         name: h.name,

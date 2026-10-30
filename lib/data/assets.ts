@@ -19,22 +19,24 @@ export const getAssets = cache(
   async (householdId: string): Promise<AssetItem[]> => {
     const supabase = await createClient();
 
-    const { data: assets, error } = await supabase
-      .from("assets")
-      .select("*")
-      .eq("household_id", householdId)
-      .is("disposed_at", null)
-      .order("acquired_date", { ascending: false });
+    const [assetsRes, balancesRes] = await Promise.all([
+      supabase
+        .from("assets")
+        .select("*")
+        .eq("household_id", householdId)
+        .is("disposed_at", null)
+        .order("acquired_date", { ascending: false }),
+      supabase
+        .from("v_account_balances")
+        .select("account_id, balance")
+        .eq("household_id", householdId),
+    ]);
 
-    if (error || !assets) return [];
-
-    const { data: balances } = await supabase
-      .from("v_account_balances")
-      .select("account_id, balance")
-      .eq("household_id", householdId);
+    const assets = assetsRes.data;
+    if (assetsRes.error || !assets) return [];
 
     const balanceMap = new Map<string, number>();
-    balances?.forEach((b) => {
+    balancesRes.data?.forEach((b) => {
       balanceMap.set(b.account_id, Number(b.balance) || 0);
     });
 

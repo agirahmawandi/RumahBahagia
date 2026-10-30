@@ -29,34 +29,35 @@ export interface CategoryItem {
 export const getAccounts = cache(async (householdId: string): Promise<AccountWithBalance[]> => {
   const supabase = await createClient();
 
-  const { data: accounts, error } = await supabase
-    .from("accounts")
-    .select(`
-      id,
-      household_id,
-      ledger_account_id,
-      name,
-      type,
-      institution,
-      account_number_last4,
-      color,
-      icon,
-      credit_limit
-    `)
-    .eq("household_id", householdId)
-    .is("archived_at", null)
-    .order("created_at", { ascending: true });
+  const [accountsRes, balancesRes] = await Promise.all([
+    supabase
+      .from("accounts")
+      .select(`
+        id,
+        household_id,
+        ledger_account_id,
+        name,
+        type,
+        institution,
+        account_number_last4,
+        color,
+        icon,
+        credit_limit
+      `)
+      .eq("household_id", householdId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("v_account_balances")
+      .select("account_id, balance")
+      .eq("household_id", householdId),
+  ]);
 
-  if (error || !accounts) return [];
-
-  // Ambil saldo dari v_account_balances
-  const { data: balances } = await supabase
-    .from("v_account_balances")
-    .select("account_id, balance")
-    .eq("household_id", householdId);
+  const accounts = accountsRes.data;
+  if (accountsRes.error || !accounts) return [];
 
   const balanceMap = new Map<string, number>();
-  balances?.forEach((b) => {
+  balancesRes.data?.forEach((b) => {
     balanceMap.set(b.account_id, Number(b.balance) || 0);
   });
 

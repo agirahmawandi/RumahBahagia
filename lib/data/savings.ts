@@ -20,22 +20,24 @@ export const getSavingsGoals = cache(
   async (householdId: string): Promise<SavingsGoalWithBalance[]> => {
     const supabase = await createClient();
 
-    const { data: goals, error } = await supabase
-      .from("savings_goals")
-      .select("*")
-      .eq("household_id", householdId)
-      .is("archived_at", null)
-      .order("created_at", { ascending: true });
+    const [goalsRes, balancesRes] = await Promise.all([
+      supabase
+        .from("savings_goals")
+        .select("*")
+        .eq("household_id", householdId)
+        .is("archived_at", null)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("v_account_balances")
+        .select("account_id, balance")
+        .eq("household_id", householdId),
+    ]);
 
-    if (error || !goals) return [];
-
-    const { data: balances } = await supabase
-      .from("v_account_balances")
-      .select("account_id, balance")
-      .eq("household_id", householdId);
+    const goals = goalsRes.data;
+    if (goalsRes.error || !goals) return [];
 
     const balanceMap = new Map<string, number>();
-    balances?.forEach((b) => {
+    balancesRes.data?.forEach((b) => {
       balanceMap.set(b.account_id, Number(b.balance) || 0);
     });
 
