@@ -77,6 +77,26 @@ body {
   box-shadow: var(--shadow-card);
 }
 
+/* Utilitas Smartphone & Sentuhan Mobile */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Mencegah highlight biru aneh pada tap sentuhan mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

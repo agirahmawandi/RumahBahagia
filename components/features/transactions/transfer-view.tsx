@@ -95,38 +95,70 @@ export function TransferView({
         />
       ) : (
         <Card className="p-0 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Keterangan</TableHead>
-                <TableHead>Tipe</TableHead>
-                <TableHead>Dicatat Oleh</TableHead>
-                <TableHead className="text-right">Nominal</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell className="font-medium text-xs whitespace-nowrap">
-                    {formatTanggal(tx.entry_date)}
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-bold text-ink">{tx.description}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="neutral">Transfer</Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-ink-muted">
-                    {tx.created_by_name || "Anggota"}
-                  </TableCell>
-                  <TableMoneyCell className="text-ink font-bold">
+          {/* Mobile Card / List View */}
+          <div className="divide-y divide-line/60 sm:hidden">
+            {transactions.map((tx) => (
+              <div key={tx.id} className="p-3.5 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-body text-xs text-ink-muted">
+                      {formatTanggal(tx.entry_date)}
+                    </span>
+                    <Badge variant="neutral" className="text-[10px] py-0 px-1.5">
+                      Transfer
+                    </Badge>
+                  </div>
+                  <p className="font-ui text-sm font-bold text-ink truncate">
+                    {tx.description}
+                  </p>
+                  <p className="font-body text-xs text-ink-muted truncate">
+                    Oleh: {tx.created_by_name || "Anggota"}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="tabular-money font-display font-bold text-base text-ink">
                     {formatRupiah(tx.amount)}
-                  </TableMoneyCell>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Keterangan</TableHead>
+                  <TableHead>Tipe</TableHead>
+                  <TableHead>Dicatat Oleh</TableHead>
+                  <TableHead className="text-right">Nominal</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx) => (
+                  <TableRow key={tx.id}>
+                    <TableCell className="font-medium text-xs whitespace-nowrap">
+                      {formatTanggal(tx.entry_date)}
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-bold text-ink">{tx.description}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="neutral">Transfer</Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-ink-muted">
+                      {tx.created_by_name || "Anggota"}
+                    </TableCell>
+                    <TableMoneyCell className="text-ink font-bold">
+                      {formatRupiah(tx.amount)}
+                    </TableMoneyCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
       )}
 

@@ -333,18 +333,18 @@ export function AppShell({
         </header>
 
         {/* Page Container */}
-        <main className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-10">
+        <main className="flex-1 w-full max-w-[1280px] mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-10">
           {children}
         </main>
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 h-16 border-t border-line bg-white/95 backdrop-blur-md px-2 flex items-center justify-around">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 h-[calc(4rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)] border-t border-line bg-white/95 backdrop-blur-md px-2 flex items-center justify-around shadow-sm">
         <Link
           href="/dashboard"
           prefetch={true}
           className={cn(
-            "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold",
+            "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold touch-manipulation active:scale-95 transition-transform",
             isActive("/dashboard") ? "text-teal-700" : "text-ink-muted"
           )}
         >
@@ -356,7 +356,7 @@ export function AppShell({
           href="/pengeluaran"
           prefetch={true}
           className={cn(
-            "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold",
+            "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold touch-manipulation active:scale-95 transition-transform",
             isActive("/pengeluaran") || isActive("/pemasukan")
               ? "text-teal-700"
               : "text-ink-muted"
@@ -372,7 +372,7 @@ export function AppShell({
             type="button"
             onClick={() => setQuickAddOpen(true)}
             aria-label="Tambah transaksi cepat"
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-flame text-white shadow-lg hover:bg-flame-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal transition-transform active:scale-95 cursor-pointer"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-flame text-white shadow-lg hover:bg-flame-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal transition-transform active:scale-90 cursor-pointer touch-manipulation"
           >
             <Plus className="h-7 w-7" strokeWidth={2.5} />
           </button>
@@ -382,7 +382,7 @@ export function AppShell({
           href="/tabungan"
           prefetch={true}
           className={cn(
-            "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold",
+            "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold touch-manipulation active:scale-95 transition-transform",
             isActive("/tabungan") ? "text-teal-700" : "text-ink-muted"
           )}
         >
@@ -394,7 +394,7 @@ export function AppShell({
           type="button"
           onClick={() => setMobileMoreOpen(true)}
           className={cn(
-            "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold cursor-pointer",
+            "flex flex-col items-center justify-center gap-1 px-2 py-1 font-ui text-[11px] font-bold cursor-pointer touch-manipulation active:scale-95 transition-transform",
             mobileMoreOpen ? "text-teal-700" : "text-ink-muted"
           )}
         >
@@ -405,15 +405,22 @@ export function AppShell({
 
       {/* Quick-Add Sheet / Modal */}
       {quickAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-ink/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-[16px] border border-line bg-white p-5 shadow-tropical animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-ink/40 p-0 sm:p-4 backdrop-blur-xs animate-in fade-in duration-150">
+          <div
+            className="fixed inset-0"
+            onClick={() => setQuickAddOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-full max-w-md rounded-t-[24px] sm:rounded-[16px] border-t sm:border border-line bg-white p-5 sm:p-6 shadow-tropical animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:pb-6">
+            {/* Mobile Drag Indicator */}
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-line sm:hidden" />
             <div className="flex items-center justify-between pb-3 border-b border-line">
               <div>
                 <h2 className="font-display text-xl font-bold text-ink">
                   Catat Transaksi Cepat
                 </h2>
                 <p className="font-body text-xs text-ink-muted">
-                  Pilih transaksi yang ingin Anda catat
+                  Pilih jenis transaksi yang ingin Anda catat
                 </p>
               </div>
               <button
@@ -433,7 +440,7 @@ export function AppShell({
                     key={action.href}
                     href={action.href}
                     onClick={() => setQuickAddOpen(false)}
-                    className="flex items-center gap-3.5 rounded-[12px] border border-line p-3 hover:bg-cream-50 transition-colors"
+                    className="flex items-center gap-3.5 rounded-[12px] border border-line p-3 hover:bg-cream-50 active:bg-cream transition-colors touch-manipulation"
                   >
                     <div
                       className={cn(
@@ -461,12 +468,24 @@ export function AppShell({
 
       {/* Mobile More Navigation Sheet */}
       {mobileMoreOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-xs lg:hidden">
-          <div className="w-full rounded-t-[20px] border-t border-line bg-white p-5 shadow-tropical animate-in slide-in-from-bottom duration-200 max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-xs lg:hidden animate-in fade-in duration-150">
+          <div
+            className="fixed inset-0"
+            onClick={() => setMobileMoreOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-full rounded-t-[24px] border-t border-line bg-white p-5 shadow-tropical animate-in slide-in-from-bottom duration-200 max-h-[85vh] overflow-y-auto pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
+            {/* Mobile Drag Indicator */}
+            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-line" />
             <div className="flex items-center justify-between pb-3 border-b border-line">
-              <span className="font-display text-lg font-bold text-ink">
-                Menu Lengkap
-              </span>
+              <div>
+                <span className="font-display text-lg font-bold text-ink block">
+                  Menu Lengkap
+                </span>
+                <span className="font-body text-xs text-ink-muted">
+                  Buku Aktif: {currentHousehold?.name}
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={() => setMobileMoreOpen(false)}
@@ -487,7 +506,7 @@ export function AppShell({
                     prefetch={true}
                     onClick={() => setMobileMoreOpen(false)}
                     className={cn(
-                      "flex flex-col items-center justify-center gap-2 rounded-[14px] p-3 text-center border font-ui text-xs font-bold transition-colors",
+                      "flex flex-col items-center justify-center gap-2 rounded-[14px] p-3 text-center border font-ui text-xs font-bold transition-colors touch-manipulation active:scale-95",
                       active
                         ? "border-teal bg-teal text-ink shadow-xs"
                         : "border-line bg-white text-ink hover:bg-cream"

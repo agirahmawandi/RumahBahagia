@@ -78,44 +78,44 @@ export function LaporanView({
       />
 
       {/* Report Tabs */}
-      <div className="flex border-b border-line gap-2">
+      <div className="flex border-b border-line gap-2 overflow-x-auto scrollbar-none pb-0.5">
         <button
           type="button"
           onClick={() => setActiveTab("neraca")}
-          className={`pb-3 px-4 font-ui text-sm font-bold border-b-2 transition-colors cursor-pointer ${
+          className={`pb-3 px-3.5 sm:px-4 font-ui text-xs sm:text-sm font-bold border-b-2 transition-colors cursor-pointer shrink-0 ${
             activeTab === "neraca"
               ? "border-teal text-teal-800"
               : "border-transparent text-ink-muted hover:text-ink"
           }`}
         >
-          <Scale className="inline-block h-4 w-4 mr-2" />
+          <Scale className="inline-block h-4 w-4 mr-1.5" />
           Neraca (Balance Sheet)
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("surplus")}
-          className={`pb-3 px-4 font-ui text-sm font-bold border-b-2 transition-colors cursor-pointer ${
+          className={`pb-3 px-3.5 sm:px-4 font-ui text-xs sm:text-sm font-bold border-b-2 transition-colors cursor-pointer shrink-0 ${
             activeTab === "surplus"
               ? "border-teal text-teal-800"
               : "border-transparent text-ink-muted hover:text-ink"
           }`}
         >
-          <FileBarChart2 className="inline-block h-4 w-4 mr-2" />
-          Surplus / Defisit (Laba-Rugi)
+          <FileBarChart2 className="inline-block h-4 w-4 mr-1.5" />
+          Surplus / Defisit
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("networth")}
-          className={`pb-3 px-4 font-ui text-sm font-bold border-b-2 transition-colors cursor-pointer ${
+          className={`pb-3 px-3.5 sm:px-4 font-ui text-xs sm:text-sm font-bold border-b-2 transition-colors cursor-pointer shrink-0 ${
             activeTab === "networth"
               ? "border-teal text-teal-800"
               : "border-transparent text-ink-muted hover:text-ink"
           }`}
         >
-          <TrendingUp className="inline-block h-4 w-4 mr-2" />
-          Kekayaan Bersih (Net Worth)
+          <TrendingUp className="inline-block h-4 w-4 mr-1.5" />
+          Kekayaan Bersih
         </button>
       </div>
 

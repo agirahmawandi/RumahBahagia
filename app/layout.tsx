@@ -1,7 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Montserrat, Karla } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#FFFBEF",
+};
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",

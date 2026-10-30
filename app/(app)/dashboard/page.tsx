@@ -72,19 +72,19 @@ export default async function DashboardPage() {
             <span className="font-ui text-xs font-bold uppercase tracking-wider text-ink/80">
               Total Kekayaan Bersih (Aset − Utang)
             </span>
-            <p className="mt-2 tabular-money text-4xl font-bold text-ink">
+            <p className="mt-2 tabular-money text-3xl sm:text-4xl font-bold text-ink tracking-tight break-words">
               {formatRupiah(netWorth.netWorth)}
             </p>
             <p className="mt-1 font-body text-xs text-ink/80">
               Per {formatTanggal(new Date())} · Buku: {household.name}
             </p>
           </div>
-          <div className="mt-6 grid grid-cols-2 gap-3 rounded-[12px] bg-white/85 p-3.5">
+          <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 rounded-[12px] bg-white/85 p-3 sm:p-3.5 border border-line/40">
             <div>
               <span className="font-ui text-[11px] font-bold text-teal-700">
                 Total Aset
               </span>
-              <p className="tabular-money text-lg font-bold text-ink">
+              <p className="tabular-money text-base sm:text-lg font-bold text-ink truncate">
                 {formatRupiah(netWorth.totalAssets)}
               </p>
             </div>
@@ -92,7 +92,7 @@ export default async function DashboardPage() {
               <span className="font-ui text-[11px] font-bold text-flame-700">
                 Total Liabilitas
               </span>
-              <p className="tabular-money text-lg font-bold text-flame-700">
+              <p className="tabular-money text-base sm:text-lg font-bold text-flame-700 truncate">
                 {formatRupiah(netWorth.totalLiabilities)}
               </p>
             </div>
@@ -238,10 +238,10 @@ export default async function DashboardPage() {
                 return (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between pt-2.5 first:pt-0"
+                    className="flex items-center justify-between gap-3 pt-3 first:pt-0"
                   >
-                    <div>
-                      <p className="font-ui text-sm font-bold text-ink">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-ui text-sm font-bold text-ink truncate">
                         {tx.description}
                       </p>
                       <p className="font-body text-xs text-ink-muted">
@@ -249,7 +249,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <span
-                      className={`tabular-money font-display font-bold text-base ${
+                      className={`tabular-money font-display font-bold text-sm sm:text-base shrink-0 ${
                         isIncome
                           ? "text-teal-700"
                           : isExpense
